@@ -223,18 +223,20 @@ def save_processed_posts(df,sites):
 
 def load_processed_posts():
     try:
-        with open ('Nairaland_dfs', 'rb') as fp:
+        with open ('nairaland_dfs', 'rb') as fp:
             dfs = pickle.load(fp)
     except:
         dfs = []
+        print("the file for processed posts is not created yet")
     return(dfs)
 
 def load_processed_sites():
     try:
-        with open ('Visited_sites', 'rb') as f:
+        with open ('visited_sites', 'rb') as f:
             sites = pickle.load(f)
     except:
         sites = []
+        print("the file for proccessed sites is not created yet")
     return(sites)
 
 def save_bad_sites(sites):
