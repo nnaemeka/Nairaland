@@ -227,7 +227,6 @@ def load_processed_posts():
             dfs = pickle.load(fp)
     except:
         dfs = []
-        print("the file for processed posts is not created yet")
     return(dfs)
 
 def load_processed_sites():
@@ -236,7 +235,6 @@ def load_processed_sites():
             sites = pickle.load(f)
     except:
         sites = []
-        print("the file for proccessed sites is not created yet")
     return(sites)
 
 def save_bad_sites(sites):

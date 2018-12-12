@@ -39,12 +39,12 @@ for page in range(number_of_pages):
         else:
             #print(a['href'][:11],a['href'].split())
             link_piece = a['href'][:11]
-            advert_link = "https://www.nairaland.com/1049481/how-place-targeted-ads-nairaland"
-        if link_position>=1 and link_piece == "https://www" and a['href'] != advert_link: #118: #range of link that refers to posts
-            #if link_position>=58 and link_position<=63: #118: #range of link that refers to posts
-            print("Currently at the URL:",page+1, a['href'])
-            number_of_pages = get_number_of_pages(a['href'])
             site = a['href']
+            advert_link = "https://www.nairaland.com/1049481/how-place-targeted-ads-nairaland"
+        if link_position>=1 and link_piece == "https://www" and site != advert_link: #118: #range of link that refers to posts
+            #if link_position>=58 and link_position<=63: #118: #range of link that refers to posts
+            print("Currently at the URL:",page+1, site)
+            number_of_pages = get_number_of_pages(a['href'])
             df1 = []
             post_available = True # assume the post has not been removed
             post_proccessed = True # assume that the post was successfully processed
