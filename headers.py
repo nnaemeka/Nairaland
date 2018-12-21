@@ -7,6 +7,22 @@ import numpy as np
 import datetime
 import pickle
 
+def get_website(url):
+    success = False
+    try_counts = 0
+    while(success == False and try_counts<2): #two tries
+        try:
+            req = requests.get(url)
+            success = True
+            return(req)
+        except:
+            print("Errors are encountered")
+            print("Will sleep for a 10 seconds")
+            #pause = str(input("press 'y' to continue"))
+            try_counts +=1
+            time.sleep(10)
+    return(None)
+
 def get_total_comments_by_text_slicing(text,topic):
     #total_comments includes the post itself
     split_comments = [i for i in text.split(topic)]
@@ -14,30 +30,38 @@ def get_total_comments_by_text_slicing(text,topic):
     total_comments = 0
     for i in split_comments:
         if j>3 and i.split()[0] == "by": #first four is always not comment, so ignore.
-            #print(i)
             total_comments+=1
         j+=1
     return(total_comments)
 
 def get_number_of_pages(site):
-    #site = a['href']
-    for i in range(10000):
-    #print(i)
+    for i in range(100000): # a post can have as many as 5000 or more sub pages. Large number is used here to ensure all pages are counted
         if i == 0:
-            req = requests.get(site)
+            req = get_website(site)
+            if req == None:
+                return(None)
+            else:
+                pass
             soup = BeautifulSoup(req.text, 'html.parser')
-            title1 = soup.title.text        
+            title1 = soup.title.text 
         else:
-            req = requests.get(site+"/"+str(i))
+            req = get_website(site+"/"+str(i))
+            if req == None:
+                return(None)
+            else:
+                pass
             soup = BeautifulSoup(req.text, 'html.parser')
+            if soup.title == None: # the page shows nothing due to server error
+                return(i)
+            else:
+                pass
             title2 = soup.title.text
-            #print(site+"/"+str(i))
-            if title1 == title2:
-                break
+            if title1 == title2: #at the last sub page
+                return(i)
             else:
                 title1 = title2
     print("Number of pages are:",i)
-    return(i)
+    return(0)
 
 def get_username_gender_shares_and_likes(text,topic,number_of_comments_by_tags_extraction):
     Likes = []
@@ -49,7 +73,6 @@ def get_username_gender_shares_and_likes(text,topic,number_of_comments_by_tags_e
     if number_of_comments_by_text_splitting == number_of_comments_by_tags_extraction:
         i=0 #for marking which splited pieces we are. First four are not comments
         for line in comment_list:
-            #print(line)
             if len(line.split())>1 and i>3 and line.split()[0] == "by":
                 if comment_list.index(line) == len(comment_list)-1:
                     likes,shares = get_last_comment_likes_and_shares(line)
@@ -59,7 +82,6 @@ def get_username_gender_shares_and_likes(text,topic,number_of_comments_by_tags_e
                     username,gender = get_user(username_gender)
                     Username.append(username)
                     Gender.append(gender)
-                    #print("Likes***:",likes,"Shares:",shares,"Username:",username,"Gender:",gender)
                 else:
                     likes_and_share = line.split()[-5:]
                     likes,shares = get_likes_and_share(likes_and_share)
@@ -77,9 +99,7 @@ def get_username_gender_shares_and_likes(text,topic,number_of_comments_by_tags_e
         number_of_comments_by_text_splitting = get_total_comments_by_text_slicing(text,correct_topic)
         for line in comment_list:
             if len(line.split())>1 and i>3 and line.split()[0] == "by":
-            #correct_length = len(comment_list)-4 #first four not comments
                 if comment_list.index(line) == len(comment_list)-1: # checks if it is the last comment.
-                    #print("Last comment")
                     likes,shares = get_last_comment_likes_and_shares(line)
                     Shares.append(shares)
                     Likes.append(likes)
@@ -87,7 +107,6 @@ def get_username_gender_shares_and_likes(text,topic,number_of_comments_by_tags_e
                     username,gender = get_user(username_gender)
                     Username.append(username)
                     Gender.append(gender)
-                    #print("Likes:",likes,"Shares:",shares,"Username:",username,"Gender:",gender)
                 else:
                     likes_and_share = line.split()[-5:]
                     likes,shares = get_likes_and_share(likes_and_share)
@@ -97,8 +116,6 @@ def get_username_gender_shares_and_likes(text,topic,number_of_comments_by_tags_e
                     username,gender = get_user(username_gender)
                     Username.append(username)
                     Gender.append(gender)
-                    #print("Likes#####:",likes,"Shares:",shares,"Username:",username,"Gender:",gender)
-                    #print("VERIFY:",number_of_comments_by_tags_extraction,correct_length)
             i+=1           
     return(Username,Gender,Shares,Likes,number_of_comments_by_text_splitting)
 
@@ -106,13 +123,11 @@ def get_last_comment_likes_and_shares(line):
     if len(line.split("Like")) > 1:
         last_comment_line = line.split("Like")[0]
         likes = last_comment_line.split()[-1]
-        #print("Last Comment Likes",likes)
     else:
         likes = 0
     if len(line.split("Share")) > 1:
         last_comment_line = line.split("Share")[0]
         shares = last_comment_line.split()[-1]
-        #print(" Last comment Shares",shares)
     else:
         shares = 0
     return(likes, shares)
@@ -148,9 +163,9 @@ def get_likes_and_share(likes_and_share):
     return(likes,shares)
 
 def get_comments(soup):
-    title = soup.title.string
-    topic = '-'.join(title.split("-")[:-2])
-    section = title.split("-")[-2]
+    #title = soup.title.string
+    #topic = '-'.join(title.split("-")[:-2])
+    #section = title.split("-")[-2]
     comments = []
     k=0
     for link in soup.find_all('div',{'class':'narrow'}):
@@ -201,8 +216,6 @@ def format_date(date):
     
 def get_post_features(username,gender,date,topic,author,section,country,comment,likes,shares):
     post_features = []
-    #print("AUTHOR:",author)
-    #time.sleep(10)
     b =1
     for i,j,k,l,m,n in zip(username,gender,date,comment,likes,shares):
         if b ==1 and author == "Yes":
